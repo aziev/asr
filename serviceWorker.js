@@ -1,4 +1,4 @@
-const cacheName = 'cache-first-v4'
+const cacheName = 'cache-first-v5'
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(caches.keys().then((keyList) => {
