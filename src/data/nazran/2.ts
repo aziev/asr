@@ -252,5 +252,14 @@ export const schedule: DailySchedule[] = [
     asr: '15:18',
     maghrib: '17:49',
     isha: '19:07',
+  },
+  {
+    day: 29,
+    fajr: '05:15',
+    sunrise: '06:38',
+    zuhr: '12:17',
+    asr: '15:18',
+    maghrib: '17:49',
+    isha: '19:07',
   }
 ]
