@@ -8,7 +8,7 @@ createApp(App).mount('#app')
 const onWorkerReady = () => {
   console.info('ServiceWorker is ready');
 }
-navigator.serviceWorker.register('serviceWorker.js?v=1');
+navigator.serviceWorker.register('serviceWorker.js?v=2');
 navigator.serviceWorker.ready.then(onWorkerReady);
 
 // Vanilla
