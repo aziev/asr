@@ -2,17 +2,21 @@ import { ref } from 'vue'
 
 const now = ref(new Date())
 
-setInterval(() => {now.value = new Date()}, 10000)
+setInterval(() => {now.value = new Date()}, 1000)
 
 export function useDate() {
   const leftTime = (to) => {
     let milliseconds = to - now.value
-    let minutes = milliseconds / 1000 / 60
+    let totalSeconds = Math.max(0, Math.floor(milliseconds / 1000))
+    let hours = Math.floor(totalSeconds / 3600)
+    let minutes = Math.floor((totalSeconds % 3600) / 60)
+    let seconds = totalSeconds % 60
 
-    return padAndConcatTime(
-      Math.floor(minutes / 60), // hours
-      Math.floor(minutes % 60) // minutes
-    )
+    if (totalSeconds < 600) {
+      return padAndConcatTime(hours, minutes, seconds)
+    }
+
+    return padAndConcatTime(hours, minutes)
   }
 
   return {
@@ -47,9 +51,15 @@ export function stringToDate(string, dayShift = 0) {
   )
 }
 
-export function padAndConcatTime(hours, minutes) {
+export function padAndConcatTime(hours, minutes, seconds = null) {
   let hh = String(hours).padStart(2, '0')
   let mm = String(minutes).padStart(2, '0')
+
+  if (seconds !== null) {
+    let ss = String(seconds).padStart(2, '0')
+
+    return `${hh}:${mm}:${ss}`
+  }
 
   return `${hh}:${mm}`
 }
