@@ -6,10 +6,13 @@ createApp(App).mount('#app')
 
 
 const onWorkerReady = () => {
-  console.info('ServiceWorker is ready');
+  console.info('ServiceWorker is ready')
 }
-navigator.serviceWorker.register('serviceWorker.js?v=2');
-navigator.serviceWorker.ready.then(onWorkerReady);
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js?v=1')
+  navigator.serviceWorker.ready.then(onWorkerReady)
+}
 
 // Vanilla
 
@@ -28,8 +31,8 @@ navigator.serviceWorker.ready.then(onWorkerReady);
 // }
 
 function setVh () {
-  let vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
+  const vh = window.innerHeight * 0.01
+  document.documentElement.style.setProperty('--vh', `${vh}px`)
 }
 
 setVh()

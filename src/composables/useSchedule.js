@@ -10,6 +10,8 @@ const today = ref(null)
 const tomorrow = ref(null)
 const startOfNight = ref(null)
 const endOfNight = ref(null)
+const lastLoadedDateKey = ref(null)
+let syncIntervalId = null
 
 setVariables().then(() => {})
 
@@ -61,6 +63,7 @@ async function setVariables () {
   endOfNight.value = stringToDate(tomorrow.value.fajr, 1)
 
   loaded.value = true
+  lastLoadedDateKey.value = getDateKey()
 }
 
 async function getTomorrowTimes() {
@@ -77,4 +80,56 @@ async function getTomorrowTimes() {
   }
 
   return schedule.value.find(item => item.day === new Date().getDate() + 1)
+}
+
+function getDateKey () {
+  const now = new Date()
+  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+}
+
+async function syncScheduleIfNeeded () {
+  if (lastLoadedDateKey.value !== getDateKey()) {
+    await setVariables()
+  }
+}
+
+export function setupScheduleAutoRefresh () {
+  const onVisible = async () => {
+    if (document.visibilityState === 'visible') {
+      await syncScheduleIfNeeded()
+    }
+  }
+
+  const onWindowFocus = async () => {
+    await syncScheduleIfNeeded()
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', onVisible)
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', onWindowFocus)
+  }
+
+  if (!syncIntervalId) {
+    syncIntervalId = setInterval(() => {
+      syncScheduleIfNeeded()
+    }, 60000)
+  }
+
+  return () => {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('focus', onWindowFocus)
+    }
+
+    if (syncIntervalId) {
+      clearInterval(syncIntervalId)
+      syncIntervalId = null
+    }
+  }
 }

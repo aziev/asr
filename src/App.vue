@@ -4,16 +4,19 @@ import Navigation from './components/Navigation.vue'
 import ScheduleSection from './components/sections/ScheduleSection.vue'
 import SettingsSection from './components/sections/SettingsSection.vue'
 import { computed, ref } from 'vue'
-import { useSchedule } from './composables/useSchedule.js'
+import { useDate } from './composables/useDate.js'
+import { setupScheduleAutoRefresh, useSchedule } from './composables/useSchedule.js'
 import useSettings from './composables/useSettings.js'
 
 const activeSection = ref('home')
 const { loaded, startOfNight, endOfNight } = useSchedule()
 const { settings } = useSettings()
+const { now } = useDate()
+setupScheduleAutoRefresh()
 
 const darkTheme = computed(() => {
   let result = false
-  const currentTime = (new Date()).getTime()
+  const currentTime = now.value.getTime()
 
   if (
       settings.value.theme === 'dark'
