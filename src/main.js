@@ -10,7 +10,8 @@ const onWorkerReady = () => {
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js?v=1')
+  const swUrl = `${import.meta.env.BASE_URL}serviceWorker.js?v=2`
+  navigator.serviceWorker.register(swUrl)
   navigator.serviceWorker.ready.then(onWorkerReady)
 }
 
