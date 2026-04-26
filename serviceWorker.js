@@ -1,31 +1,55 @@
-const cacheName = 'network-first-v1'
+const CACHE_NAME = 'network-first-v2'
+const NETWORK_TIMEOUT_MS = 2000
+
+self.addEventListener('install', () => {
+  self.skipWaiting()
+})
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then((keyList) => {
-    return Promise.all(keyList.map((key) => {
-      if (key !== cacheName) {
-        return caches.delete(key)
-      }
-    }))
-  }))
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key)),
+      ),
+    ),
+  )
+
+  self.clients.claim()
 })
 
 self.addEventListener('fetch', (event) => {
-  // Check if this is a navigation request
-  if (event.request.mode === 'navigate') {
-    // Open the cache
-    event.respondWith(caches.open(cacheName).then((cache) => {
-      // Go to the network first
-      return fetch(event.request.url).then((fetchedResponse) => {
-        cache.put(event.request, fetchedResponse.clone());
+  if (event.request.method !== 'GET') return
 
-        return fetchedResponse;
-      }).catch(() => {
-        // If the network is unavailable, get
-        return cache.match(event.request.url);
-      });
-    }));
-  } else {
-    return;
+  event.respondWith(networkFirst(event.request))
+})
+
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME)
+  const cachedResponse = await cache.match(request)
+  const networkPromise = fetch(request)
+
+  try {
+    const response = await promiseWithTimeout(networkPromise, NETWORK_TIMEOUT_MS)
+    cache.put(request, response.clone())
+    return response
+  } catch {
+    if (cachedResponse) return cachedResponse
+    return networkPromise
   }
-});
+}
+
+function promiseWithTimeout(promise, timeoutMs) {
+  let timerId
+
+  const timeoutPromise = new Promise((_, reject) => {
+    timerId = setTimeout(() => {
+      reject(new Error('Network timeout'))
+    }, timeoutMs)
+  })
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timerId)
+  })
+}
